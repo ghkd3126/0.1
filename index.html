@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자습실 자리 배치도</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: #f0f4ff;
+  min-height: 100vh;
+  color: #1e2240;
+  padding: 20px 12px 48px;
+}
+
+/* ── Header ── */
+.header { text-align: center; margin-bottom: 18px; }
+.header-sub { font-size: 11px; letter-spacing: 4px; color: #9aa3be; margin-bottom: 4px; }
+.header-title { font-size: 24px; font-weight: 800; color: #1e2240; }
+.stats-bar {
+  display: inline-flex; gap: 18px; margin-top: 12px;
+  background: #fff; border-radius: 12px; padding: 8px 22px;
+  border: 1px solid #dde2f0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  align-items: center; flex-wrap: wrap; justify-content: center;
+}
+.stat-item { font-size: 12px; color: #6b7280; }
+.stat-val-blue { color: #3b82f6; font-size: 14px; font-weight: 700; }
+.stat-val-green { color: #22c55e; font-size: 14px; font-weight: 700; }
+.save-msg { font-size: 11px; color: #22c55e; opacity: 0; transition: opacity 0.3s; }
+.save-msg.show { opacity: 1; }
+.autosave-lbl { font-size: 11px; color: #c8cfe0; }
+
+/* ── Tabs ── */
+.group-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+.tab-btn {
+  padding: 8px 28px; border-radius: 11px; font-size: 14px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid #dde2f0; background: #fff; color: #9aa3be;
+  transition: all 0.18s; font-family: 'Noto Sans KR', sans-serif;
+}
+.tab-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; box-shadow: 0 2px 10px #6366f155; }
+
+/* ── Mode bar ── */
+.mode-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.mode-btn {
+  padding: 7px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid #dde2f0; background: #fff; color: #9aa3be;
+  transition: all 0.18s; font-family: 'Noto Sans KR', sans-serif;
+}
+.mode-btn.active-edit   { background: #3b82f6; border-color: #3b82f6; color: #fff; box-shadow: 0 2px 8px #3b82f655; }
+.mode-btn.active-attend { background: #22c55e; border-color: #22c55e; color: #fff; box-shadow: 0 2px 8px #22c55e55; }
+.btn-yellow { border-color: #fbbf24 !important; color: #d97706 !important; background: #fff; }
+.btn-red    { border-color: #fca5a5 !important; color: #ef4444 !important; background: #fff; }
+
+/* ── Name popup ── */
+.name-popup { display: none; justify-content: center; margin-bottom: 14px; }
+.name-popup.show { display: flex; }
+.popup-inner {
+  background: #fff; border: 1.5px solid #3b82f6; border-radius: 12px;
+  padding: 10px 16px; display: flex; gap: 8px; align-items: center;
+  box-shadow: 0 2px 16px #3b82f625;
+}
+.popup-label { font-size: 13px; color: #3b82f6; font-weight: 700; min-width: 28px; }
+.name-input {
+  background: #f5f7ff; border: 1px solid #dde2f0; border-radius: 6px;
+  padding: 6px 10px; color: #1e2240; font-size: 13px; width: 110px; outline: none;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.btn-save {
+  background: #3b82f6; border: none; border-radius: 6px; padding: 6px 12px;
+  color: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.btn-cancel {
+  background: transparent; border: 1px solid #dde2f0; border-radius: 6px;
+  padding: 6px 10px; color: #9aa3be; font-size: 12px; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* ── Chart wrapper ── */
+.chart-wrap { display: flex; justify-content: center; }
+.chart-box {
+  background: #fff; border: 2px solid #dde2f0; border-radius: 14px;
+  padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); display: inline-block;
+}
+.chart-label { text-align: center; font-size: 10px; color: #c8cfe0; letter-spacing: 2px; }
+.chart-label.top { margin-bottom: 10px; }
+.chart-label.bot { margin-top: 12px; }
+
+/* ── Layout helpers ── */
+.row { display: flex; align-items: flex-start; }
+.col { display: flex; flex-direction: column; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 56px); gap: 6px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 56px); gap: 6px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 56px); gap: 6px; }
+.gap6  { gap: 6px; }
+.gap44 { gap: 44px; }
+.sp18  { height: 18px; }
+.sp14  { height: 14px; }
+.sp20  { height: 20px; }
+
+/* ── Seat ── */
+.seat {
+  width: 56px; height: 42px;
+  background: #f0f2f8; border: 2px solid #c8cfe0;
+  border-radius: 7px; cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: all 0.15s; user-select: none;
+  position: relative; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.seat:hover { transform: scale(1.04); }
+.seat.has-name { background: #fff; border-color: #93c5fd; }
+.seat.attended { background: #dcfce7; border-color: #22c55e; }
+.seat.selected { background: #dbeafe; border-color: #3b82f6; }
+.seat-id { font-size: 8px; color: #b0b8d0; margin-bottom: 1px; }
+.seat-name { font-size: 13px; color: #9aa3be; font-weight: 400; text-align: center; line-height: 1.2; padding: 0 3px; }
+.seat.has-name .seat-name { font-size: 11px; color: #1e3a6e; font-weight: 700; }
+.seat.attended .seat-name { color: #166534; }
+.seat.selected .seat-name { color: #3b82f6; }
+.attended-mark { position: absolute; top: 1px; right: 3px; font-size: 9px; display: none; }
+.seat.attended .attended-mark { display: block; }
+
+/* ── Special cells ── */
+.cell-door {
+  width: 56px; height: 42px; border: 2px solid #d4a843; border-radius: 7px;
+  background: #fef3c7; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #b45309; font-weight: 700;
+}
+.cell-manager {
+  width: 56px; height: 42px; background: #f3e8ff; border: 2px solid #c084fc;
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #7e22ce; font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* ── Legend ── */
+.legend { display: flex; justify-content: center; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; }
+.legend-dot { width: 14px; height: 14px; border-radius: 3px; border-width: 2px; border-style: solid; }
+
+/* ── Group 2 ── */
+.g2-wrap { display: flex; align-items: flex-start; gap: 0; }
+.wall-v { width: 8px; border-radius: 4px; background: #e2e8f0; }
+.wall-h { height: 8px; border-radius: 4px; background: #e2e8f0; margin-top: 10px; }
+
+
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-sub">자습실</div>
+  <div class="header-title">자리 배치도</div>
+  <div class="stats-bar">
+    <span class="stat-item">자리 <b class="stat-val-blue" id="filled">0</b>/<span id="total">0</span></span>
+    <span class="stat-item">출석 <b class="stat-val-green" id="attended">0</b>/<span id="filled2">0</span></span>
+    <span class="save-msg" id="save-msg">💾 저장됨</span>
+    <span class="autosave-lbl">자동저장 ON</span>
+  </div>
+</div>
+
+<!-- Group tabs -->
+<div class="group-tabs">
+  <button class="tab-btn active" id="tab1" onclick="switchGroup('1')">1그룹</button>
+  <button class="tab-btn"        id="tab2" onclick="switchGroup('2')">2그룹</button>
+</div>
+
+<!-- Mode bar -->
+<div class="mode-bar">
+  <button class="mode-btn active-edit" id="btn-edit"   onclick="setMode('edit')">✏️ 이름 입력</button>
+  <button class="mode-btn"             id="btn-attend" onclick="setMode('attend')">✅ 출석 체크</button>
+  <button class="mode-btn btn-yellow"  onclick="resetAttendance()">출석 초기화</button>
+  <button class="mode-btn btn-red"     onclick="resetAll()">전체 초기화</button>
+</div>
+
+<!-- Name popup -->
+<div class="name-popup" id="name-popup">
+  <div class="popup-inner">
+    <span class="popup-label" id="popup-label"></span>
+    <input class="name-input" id="name-input" placeholder="이름 입력" onkeydown="if(event.key==='Enter') saveName()">
+    <button class="btn-save" onclick="saveName()">저장</button>
+    <button class="btn-cancel" onclick="closePopup()">취소</button>
+  </div>
+</div>
+
+
+<!-- Chart area -->
+<div class="chart-wrap" id="chart-wrap"></div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f0f2f8;border-color:#c8cfe0"></div>빈 자리</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fff;border-color:#93c5fd"></div>이름 있음</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#dcfce7;border-color:#22c55e"></div>출석</div>
+</div>
+
+<script>
+// ── 데이터 ──────────────────────────────────────────────
+const G1_IDS = [
+  "L1","L2","L3","L4","L5","L6",
+  "L7","L8","L9","L10","L11","L12",
+  "R1","R2","R3","R4","R5","R6",
+  "M1","M2","M3","M4",
+  "B1","B2","B3","B4","B5","B6",
+  "T1","T2","T3","T4"
+];
+const G2_IDS = [
+  "TOP1","TOP2","TOP3","TOP4","TOP5","TOP6","TOP7",
+  "SL1","SL2","SL3","SL4",
+  "SR1","SR2","SR3"
+];
+const G2_LABELS = {
+  TOP1:"①",TOP2:"②",TOP3:"③",TOP4:"④",TOP5:"⑤",TOP6:"⑥",TOP7:"⑦",
+  SL1:"좌①",SL2:"좌②",SL3:"좌③",SL4:"좌④",
+  SR1:"우①",SR2:"우②",SR3:"우③"
+};
+
+// ── 상태 ────────────────────────────────────────────────
+let currentGroup = "1";
+let currentMode  = "edit";
+let selectedId   = null;
+
+function makeSeats(ids) {
+  const obj = {};
+  ids.forEach(id => { obj[id] = { id, name: "", attended: false }; });
+  return obj;
+}
+function loadSeats(key, ids) {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const fresh = makeSeats(ids);
+      Object.keys(fresh).forEach(id => { if (parsed[id]) fresh[id] = { ...fresh[id], ...parsed[id] }; });
+      return fresh;
+    }
+  } catch(e) {}
+  return makeSeats(ids);
+}
+function saveSeats(key, seats) {
+  try { localStorage.setItem(key, JSON.stringify(seats)); } catch(e) {}
+}
+
+let seats1 = loadSeats("sc-g1-v1", G1_IDS);
+let seats2 = loadSeats("sc-g2-v1", G2_IDS);
+
+function getSeats() { return currentGroup === "1" ? seats1 : seats2; }
+function setSeats(s) { if (currentGroup === "1") seats1 = s; else seats2 = s; }
+function getIds()   { return currentGroup === "1" ? G1_IDS : G2_IDS; }
+function getKey()   { return currentGroup === "1" ? "sc-g1-v1" : "sc-g2-v1"; }
+function labelOf(id){ return currentGroup === "2" ? (G2_LABELS[id] || id) : id; }
+
+// ── 저장 표시 ────────────────────────────────────────────
+let saveMsgTimer = null;
+function showSaved() {
+  const el = document.getElementById("save-msg");
+  el.classList.add("show");
+  clearTimeout(saveMsgTimer);
+  saveMsgTimer = setTimeout(() => el.classList.remove("show"), 1500);
+}
+
+// ── 통계 업데이트 ─────────────────────────────────────────
+function updateStats() {
+  const seats = getSeats();
+  const ids = getIds();
+  const filled = ids.filter(id => seats[id].name).length;
+  const attended = ids.filter(id => seats[id].attended).length;
+  document.getElementById("filled").textContent = filled;
+  document.getElementById("total").textContent = ids.length;
+  document.getElementById("attended").textContent = attended;
+  document.getElementById("filled2").textContent = filled || ids.length;
+}
+
+// ── DOM 헬퍼 ─────────────────────────────────────────────
+function el(tag, cls, style) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (style) Object.assign(e.style, style);
+  return e;
+}
+function spacer(h) {
+  const d = el("div"); d.style.height = h + "px"; return d;
+}
+
+// ── 자리 셀 생성 ─────────────────────────────────────────
+function makeSeatEl(id) {
+  const seats = getSeats();
+  const s = seats[id];
+  const div = el("div", "seat");
+  if (s.name) div.classList.add("has-name");
+  if (s.attended) div.classList.add("attended");
+  if (selectedId === id) div.classList.add("selected");
+
+  const idSpan = el("span", "seat-id");
+  idSpan.textContent = labelOf(id);
+
+  const nameSpan = el("span", "seat-name");
+  nameSpan.textContent = s.name || "+";
+
+  const mark = el("span", "attended-mark");
+  mark.textContent = "✅";
+
+  div.appendChild(mark);
+  div.appendChild(idSpan);
+  div.appendChild(nameSpan);
+
+  div.addEventListener("click", () => handleSeatClick(id));
+  return div;
+}
+
+// ── 그룹1 배치도 ─────────────────────────────────────────
+function buildGroup1() {
+  const box = el("div", "chart-box");
+
+  const topLbl = el("div", "chart-label top"); topLbl.textContent = "▲ 앞쪽"; box.appendChild(topLbl);
+
+  const row = el("div", "row gap44"); box.appendChild(row);
+
+  // 왼쪽 열
+  const left = el("div", "col gap6"); row.appendChild(left);
+  ["L1","L2","L3","L4","L5","L6"].forEach(id => left.appendChild(makeSeatEl(id)));
+  left.appendChild(spacer(18));
+  ["L7","L8","L9","L10","L11","L12"].forEach(id => left.appendChild(makeSeatEl(id)));
+  const mgr = el("div","cell-manager"); mgr.textContent="관리자"; left.appendChild(mgr);
+
+  // 오른쪽 열
+  const right = el("div", "col gap6"); row.appendChild(right);
+  ["R1","R2","R3","R4","R5","R6"].forEach(id => right.appendChild(makeSeatEl(id)));
+  const door = el("div","cell-door"); door.textContent="문"; right.appendChild(door);
+  right.appendChild(spacer(14));
+
+  const grid2 = el("div","grid-2"); right.appendChild(grid2);
+  ["M1","M2","M3","M4"].forEach(id => grid2.appendChild(makeSeatEl(id)));
+  right.appendChild(spacer(20));
+
+  const grid3 = el("div","grid-3"); right.appendChild(grid3);
+  ["B1","B2","B3","B4","B5","B6"].forEach(id => grid3.appendChild(makeSeatEl(id)));
+  right.appendChild(spacer(20));
+
+  const grid4 = el("div","grid-4"); right.appendChild(grid4);
+  ["T1","T2","T3","T4"].forEach(id => grid4.appendChild(makeSeatEl(id)));
+
+  const botLbl = el("div","chart-label bot"); botLbl.textContent="▼ 출입구"; box.appendChild(botLbl);
+  return box;
+}
+
+// ── 그룹2 배치도 ─────────────────────────────────────────
+function buildGroup2() {
+  const box = el("div","chart-box");
+
+  const SEAT_H = 42, GAP = 6;
+  const wallH = 7 * SEAT_H + 6 * GAP;
+
+  const wrap = el("div","g2-wrap"); box.appendChild(wrap);
+
+  // 왼쪽 벽
+  const wl = el("div","wall-v"); wl.style.height = wallH+"px"; wl.style.marginRight="10px"; wrap.appendChild(wl);
+
+  // TOP 세로 7칸
+  const topCol = el("div","col gap6"); topCol.style.marginRight=(SEAT_H+GAP)+"px"; wrap.appendChild(topCol);
+  ["TOP1","TOP2","TOP3","TOP4","TOP5","TOP6","TOP7"].forEach(id => topCol.appendChild(makeSeatEl(id)));
+
+  // 오른쪽 구역 (SR 위, SL 2x2 오른쪽 벽에 붙임)
+  const rightSide = el("div","col"); rightSide.style.gap=(SEAT_H+GAP)+"px"; wrap.appendChild(rightSide);
+
+  const srRow = el("div","row gap6"); rightSide.appendChild(srRow);
+  ["SR1","SR2","SR3"].forEach(id => srRow.appendChild(makeSeatEl(id)));
+
+  const slOuter = el("div"); slOuter.style.display="flex"; slOuter.style.justifyContent="flex-end"; rightSide.appendChild(slOuter);
+  const slCol = el("div","col"); slOuter.appendChild(slCol);
+  const slRow1 = el("div","row gap6"); slCol.appendChild(slRow1);
+  ["SL1","SL2"].forEach(id => slRow1.appendChild(makeSeatEl(id)));
+  slCol.appendChild(spacer(42));
+  const slRow2 = el("div","row gap6"); slCol.appendChild(slRow2);
+  ["SL3","SL4"].forEach(id => slRow2.appendChild(makeSeatEl(id)));
+
+  // 오른쪽 벽
+  const wr = el("div","wall-v"); wr.style.height=wallH+"px"; wr.style.marginLeft="10px"; wrap.appendChild(wr);
+
+  // 하단 벽
+  const wh = el("div","wall-h"); box.appendChild(wh);
+  return box;
+}
+
+// ── 렌더 ─────────────────────────────────────────────────
+function render() {
+  const wrap = document.getElementById("chart-wrap");
+  wrap.innerHTML = "";
+  wrap.appendChild(currentGroup === "1" ? buildGroup1() : buildGroup2());
+  updateStats();
+}
+
+// ── 클릭 핸들러 ──────────────────────────────────────────
+function handleSeatClick(id) {
+  const seats = getSeats();
+  if (currentMode === "edit") {
+    selectedId = id;
+    document.getElementById("popup-label").textContent = labelOf(id);
+    document.getElementById("name-input").value = seats[id].name;
+    document.getElementById("name-popup").classList.add("show");
+    setTimeout(() => document.getElementById("name-input").focus(), 50);
+    render();
+  } else {
+    if (!seats[id].name) return;
+    const updated = { ...seats, [id]: { ...seats[id], attended: !seats[id].attended } };
+    setSeats(updated);
+    saveSeats(getKey(), updated);
+    render();
+  }
+}
+
+// ── 이름 저장 ────────────────────────────────────────────
+function saveName() {
+  if (!selectedId) return;
+  const name = document.getElementById("name-input").value.trim();
+  const seats = getSeats();
+  const updated = { ...seats, [selectedId]: { ...seats[selectedId], name } };
+  setSeats(updated);
+  saveSeats(getKey(), updated);
+  showSaved();
+  closePopup();
+}
+function closePopup() {
+  selectedId = null;
+  document.getElementById("name-popup").classList.remove("show");
+  render();
+}
+
+// ── 그룹 전환 ────────────────────────────────────────────
+function switchGroup(g) {
+  currentGroup = g;
+  selectedId = null;
+  document.getElementById("name-popup").classList.remove("show");
+  document.getElementById("tab1").classList.toggle("active", g==="1");
+  document.getElementById("tab2").classList.toggle("active", g==="2");
+  render();
+}
+
+// ── 모드 전환 ────────────────────────────────────────────
+function setMode(m) {
+  currentMode = m;
+  selectedId = null;
+  document.getElementById("name-popup").classList.remove("show");
+  document.getElementById("btn-edit").className   = "mode-btn" + (m==="edit"   ? " active-edit"   : "");
+  document.getElementById("btn-attend").className = "mode-btn" + (m==="attend" ? " active-attend" : "");
+  render();
+}
+
+// ── 초기화 ───────────────────────────────────────────────
+function resetAttendance() {
+  const seats = getSeats();
+  const updated = {};
+  Object.keys(seats).forEach(k => updated[k] = { ...seats[k], attended: false });
+  setSeats(updated);
+  saveSeats(getKey(), updated);
+  render();
+}
+function resetAll() {
+  if (!confirm("이름과 출석 기록을 모두 초기화할까요?")) return;
+  const fresh = makeSeats(getIds());
+  setSeats(fresh);
+  saveSeats(getKey(), fresh);
+  render();
+}
+
+// ── 초기 렌더 ────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
