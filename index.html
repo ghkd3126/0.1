@@ -146,6 +146,16 @@ body {
 .wall-h { height: 8px; border-radius: 4px; background: #e2e8f0; margin-top: 10px; }
 
 
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: #1e2240; color: #fff; padding: 10px 22px; border-radius: 20px;
+  font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s;
+  z-index: 999; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; }
+
 </style>
 </head>
 <body>
@@ -174,6 +184,7 @@ body {
   <button class="mode-btn"             id="btn-attend" onclick="setMode('attend')">✅ 출석 체크</button>
   <button class="mode-btn btn-yellow"  onclick="resetAttendance()">출석 초기화</button>
   <button class="mode-btn btn-red"     onclick="resetAll()">전체 초기화</button>
+  <button class="mode-btn" style="border-color:#6366f1;color:#6366f1;" onclick="loadFromServer()">☁️ 동기화</button>
 </div>
 
 <!-- Name popup -->
@@ -186,6 +197,10 @@ body {
   </div>
 </div>
 
+
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
 <!-- Chart area -->
 <div class="chart-wrap" id="chart-wrap"></div>
@@ -228,6 +243,8 @@ function makeSeats(ids) {
   ids.forEach(id => { obj[id] = { id, name: "", attended: false }; });
   return obj;
 }
+const API_URL = "https://script.google.com/macros/s/AKfycbxY0jEg1FOxrNK9SkY-HmlBPlcFWxnRfLBM9mUt8MhaNTm5ubM5y-G4ZS3sGkjhzgzo9g/exec";
+
 function loadSeats(key, ids) {
   try {
     const saved = localStorage.getItem(key);
@@ -242,6 +259,35 @@ function loadSeats(key, ids) {
 }
 function saveSeats(key, seats) {
   try { localStorage.setItem(key, JSON.stringify(seats)); } catch(e) {}
+  // Google Sheets 동기화
+  const group = key.includes("g1") ? "1" : "2";
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "save", seats, group }),
+  }).catch(() => {});
+}
+
+async function loadFromServer() {
+  try {
+    showToast("☁️ 서버에서 불러오는 중...", 2000);
+    const res = await fetch(API_URL + "?action=load");
+    const data = await res.json();
+    if (!data || data.error) return;
+    const fresh1 = makeSeats(G1_IDS);
+    const fresh2 = makeSeats(G2_IDS);
+    Object.values(data).forEach(s => {
+      if (s.group === "1" && fresh1[s.id]) fresh1[s.id] = { ...fresh1[s.id], name: s.name, attended: s.attended };
+      if (s.group === "2" && fresh2[s.id]) fresh2[s.id] = { ...fresh2[s.id], name: s.name, attended: s.attended };
+    });
+    seats1 = fresh1; seats2 = fresh2;
+    // localStorage에도 캐시
+    localStorage.setItem("sc-g1-v1", JSON.stringify(seats1));
+    localStorage.setItem("sc-g2-v1", JSON.stringify(seats2));
+    render();
+    showToast("✅ 최신 데이터 불러옴!", 2000);
+  } catch(e) {
+    showToast("⚠️ 오프라인 - 로컬 데이터 사용중", 2000);
+  }
 }
 
 let seats1 = loadSeats("sc-g1-v1", G1_IDS);
@@ -466,8 +512,20 @@ function resetAll() {
   render();
 }
 
+
+// ── Toast ────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, duration=2000) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), duration);
+}
+
 // ── 초기 렌더 ────────────────────────────────────────────
 render();
+loadFromServer();
 </script>
 </body>
 </html>
